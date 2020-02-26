@@ -10,8 +10,6 @@ from pathvalidate import sanitize_filename
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from dotenv import load_dotenv
-load_dotenv()
-
 
 
 def create_parser():
@@ -21,7 +19,7 @@ def create_parser():
     return parser
 
 
-def download_txt(txt_url, book_title, folder=os.path.join(os.getenv('books_folder'))):
+def download_txt(txt_url, book_title, folder):
     os.makedirs(folder, exist_ok=True)
     response = requests.get(txt_url, allow_redirects=False)
     response.raise_for_status()
@@ -34,7 +32,7 @@ def download_txt(txt_url, book_title, folder=os.path.join(os.getenv('books_folde
         return book_path
 
 
-def download_image(img_url, image_name, folder=os.path.join(os.getenv('images_folder'))):
+def download_image(img_url, image_name, folder):
     os.makedirs(folder, exist_ok=True)
     response = requests.get(img_url, allow_redirects=False)
     response.raise_for_status()
@@ -47,12 +45,16 @@ def download_image(img_url, image_name, folder=os.path.join(os.getenv('images_fo
         return image_src
 
 
-def create_json_catalogue():
-    with open(os.getenv('json_catalogue'), "w", encoding='utf8') as my_file:
+def create_json_catalogue(json_catalogue):
+    with open(json_catalogue, "w", encoding='utf8') as my_file:
         json.dump(books_catalogue,my_file, indent="   ",ensure_ascii=False)
 
 
 if __name__ == "__main__":
+    load_dotenv()
+    books_folder = os.getenv('books_folder')
+    images_folder = os.getenv('images_folder')
+    json_catalogue = os.getenv('json_catalogue')
 
     url = 'http://tululu.org'
     books_catalogue = []
@@ -104,9 +106,9 @@ if __name__ == "__main__":
                     image_name = img_src.split('/')[2]
 
 
-                    download_image(image_link, image_name)
+                    download_image(image_link, image_name, os.path.join(images_folder))
 
-                    download_txt((urljoin(url, ("txt.php?id={id}".format(id=book_id)))), book_title)
+                    download_txt((urljoin(url, ("txt.php?id={id}".format(id=book_id)))), book_title, os.path.join(books_folder))
 
 
                     comments_selector = ".texts .black"
@@ -129,4 +131,4 @@ if __name__ == "__main__":
         else:
             break
 
-    create_json_catalogue()
+    create_json_catalogue(json_catalogue)
