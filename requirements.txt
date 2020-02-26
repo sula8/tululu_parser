@@ -1,0 +1,4 @@
+requests==2.22.0
+os==0.1.1
+pathvalidate==2.2.0
+bs4==0.0.1

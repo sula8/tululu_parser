@@ -1,0 +1,6 @@
+
+.DS_Store
+books/
+images/
+books.json
+.env
