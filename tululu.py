@@ -135,5 +135,4 @@ if __name__ == "__main__":
 
             books_catalogue.append(books_characteristics)
 
-
-    create_json_catalogue(json_catalogue)
+        create_json_catalogue(json_catalogue)
