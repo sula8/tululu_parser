@@ -41,19 +41,20 @@ def download_txt(folder, book_title):
     os.makedirs(folder, exist_ok=True)
     response = requests.get(txt_url, allow_redirects=False)
 
-    if response.status_code == 200:
-        book_filename = sanitize_filename("{}{}".format(book_title,book_file_extension))
-        book_path = os.path.join(folder, book_filename)
-        with open(book_path, 'wb') as file:
-            file.write(response.content)
-        return book_path
+    if response.status_code != 200:
+        return
+    book_filename = sanitize_filename("{}{}".format(book_title,book_file_extension))
+    book_path = os.path.join(folder, book_filename)
+    with open(book_path, 'wb') as file:
+        file.write(response.content)
+    return book_path
 
 
 def download_image(folder, books_soup):
     image_link_selector = ".bookimage a img"
     img_src = books_soup.select_one(image_link_selector)['src']
     image_link = urljoin(url, img_src)
-    image_name = img_src.split('/')[2]
+    image_name = img_src.split('/')[-1]
     os.makedirs(folder, exist_ok=True)
     response = requests.get(image_link, allow_redirects=False)
     response.raise_for_status()
@@ -64,7 +65,7 @@ def download_image(folder, books_soup):
     return image_path
 
 
-def create_json_catalogue(json_catalogue):
+def create_json_catalogue(json_catalogue, books_catalogue):
     with open(json_catalogue, "w", encoding='utf8') as my_file:
         json.dump(books_catalogue,my_file, indent="   ",ensure_ascii=False)
 
@@ -83,14 +84,6 @@ def get_genres(books_soup):
     return genres
 
 
-def link_checker(page_url):
-    page_response = requests.get(page_url, allow_redirects=False)
-    if page_response.status_code == 200:
-        return page_response
-    else:
-        exit()
-
-
 
 if __name__ == "__main__":
     load_dotenv()
@@ -105,7 +98,9 @@ if __name__ == "__main__":
     for page_num in range(parser_args.start_page, parser_args.end_page):
         page_url_template = 'l55/{page_num}/'.format(page_num=page_num)
         page_url = urljoin(url, page_url_template)
-        page_response = link_checker(page_url)
+        page_response = requests.get(page_url, allow_redirects=False)
+        if page_response.status_code != 200:
+            exit()
         page_soup = BeautifulSoup(page_response.text, 'lxml')
 
         books_selector = ".bookimage a"
@@ -121,8 +116,8 @@ if __name__ == "__main__":
             books_soup = BeautifulSoup(response.text, 'lxml')
 
             book_title = get_book_title(books_soup)
-            img_src = download_image(os.path.join(images_folder), books_soup)
-            book_path = download_txt(os.path.join(books_folder), book_title)
+            img_src = download_image(images_folder, books_soup)
+            book_path = download_txt(books_folder, book_title)
 
             books_characteristics = {'title': book_title,
                                      'author': get_book_author(books_soup),
@@ -135,4 +130,4 @@ if __name__ == "__main__":
 
             books_catalogue.append(books_characteristics)
 
-        create_json_catalogue(json_catalogue)
+        create_json_catalogue(json_catalogue, books_catalogue)
