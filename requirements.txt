@@ -1,4 +1,4 @@
-requests==2.22.0
+requests==2.31.0
 pathvalidate==2.2.0
 python-dotenv==0.10.3
 beautifulsoup4==4.7.1
